@@ -1,6 +1,7 @@
 package com.thecommunity;
 
 import com.thecommunity.exceptions.EmailExistException;
+import com.thecommunity.exceptions.FriendsNotFoundException;
 import com.thecommunity.exceptions.InvalidPasswordException;
 import com.thecommunity.model.Platform;
 import com.thecommunity.model.User;
@@ -157,5 +158,15 @@ public class PlatformTest {
         user1.send(message, "tobi@gmail.com");
         assertNotNull(user1.getChatsWith("tobi@gmail.com"));
         assertNotNull(user.getChatsWith("tobitobi@gmail.com"));
+    }
+
+    @Test
+    void thatUserCanOnlySendChatToFriends(){
+        User user = new User("Oluwatobi", "Jolayemi", "tobi@gmail.com");
+        User user1 = new User("Oluwatosin", "Jolayemi", "tobitobi@gmail.com");
+        newPlatform.register(user);
+        newPlatform.register(user1);
+        String message = "Good morning";
+        assertThrows(FriendsNotFoundException.class,()-> user1.send(message, "tobi@gmail.com"));
     }
 }

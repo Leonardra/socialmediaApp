@@ -1,11 +1,9 @@
 package com.thecommunity.model;
 
+import com.thecommunity.exceptions.FriendsNotFoundException;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Getter
@@ -126,8 +124,12 @@ public class User {
 
     public void send(String message, String recipientEmail) {
         if(isLoggedIn){
+            if(findFriend(recipientEmail) != null){
             Chat chat = createChatFor(recipientEmail);
             chat.add(message, this.emailAddress);
+            }else{
+                throw new FriendsNotFoundException();
+            }
 
         }
     }
@@ -150,7 +152,7 @@ public class User {
     public User findFriend(String emailAddress) {
         User found = null;
         for(User friend: friends){
-            if(friend.getEmailAddress() == emailAddress){
+            if(Objects.equals(friend.getEmailAddress(), emailAddress)){
                 found = friend;
             }
         }
