@@ -51,6 +51,7 @@ public class PlatformApp {
         String dashBoardMenu = """
                 Enter 1 to create send message
                 Enter 2 to view message
+                Enter 3 to add friends
                 Enter 3 to Log out
                 """;
         int input = collectIntegerInput(dashBoardMenu);

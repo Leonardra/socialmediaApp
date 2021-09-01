@@ -3,7 +3,9 @@ package com.thecommunity.model;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Getter
@@ -12,10 +14,11 @@ public class User {
     private String lastName;
     private String emailAddress;
     private String password;
-    private boolean loginStatus;
+    private boolean isLoggedIn;
     private List<FriendRequest> receivedFriendRequests;
     private List<FriendRequest> sentFriendRequests;
     private List<User> friends;
+    private final Map<String, Chat> chats = new HashMap<>();
 
     public User(String firstName, String lastName, String emailAddress) {
         this.firstName = firstName;
@@ -30,30 +33,32 @@ public class User {
         this.password = password;
     }
 
-    public void setLoginStatus() {
-        if(!loginStatus){
-            loginStatus = true;
+    public void setLoggedIn() {
+        if(!isLoggedIn){
+            isLoggedIn = true;
         }else{
-            loginStatus = false;
+            isLoggedIn = false;
         }
     }
 
-    public boolean getLoginStatus() {
-        return loginStatus;
+    public boolean getLoggedIn() {
+        return isLoggedIn;
     }
 
     public void sendFriendRequestTo(User receiver) {
-        FriendRequest friendRequest = new FriendRequest(this, receiver);
-        boolean isExist = false;
-        for(FriendRequest request: sentFriendRequests){
-            if(request.getReceiver().equals(receiver)) {
-                isExist = true;
-                break;
+        if(isLoggedIn){
+            FriendRequest friendRequest = new FriendRequest(this, receiver);
+            boolean isExist = false;
+            for(FriendRequest request: sentFriendRequests){
+                if(request.getReceiver().equals(receiver)) {
+                    isExist = true;
+                    break;
+                }
             }
-        }
-        if(!isExist){
-        this.addToSentFriendRequest(friendRequest);
-        receiver.addToReceivedFriendRequest(friendRequest);
+            if(!isExist){
+                this.addToSentFriendRequest(friendRequest);
+                receiver.addToReceivedFriendRequest(friendRequest);
+            }
         }
     }
 
@@ -75,24 +80,32 @@ public class User {
 
 
     public void acceptFriendRequestFrom(User sender) {
-        for (FriendRequest request: receivedFriendRequests) {
-            if(request.getSender().equals(sender)){
-                FriendMatcher.match(request);
-                break;
+        if(isLoggedIn){
+            for (FriendRequest request: receivedFriendRequests) {
+                if(request.getSender().equals(sender)){
+                    FriendMatcher.match(request);
+                    break;
+                }
             }
         }
     }
 
     public void removeFromReceivedFriendRequest(FriendRequest friendRequest) {
+        if(isLoggedIn){
         receivedFriendRequests.removeIf(request -> request ==friendRequest);
+        }
     }
 
     public void removeFromSentFriendRequest(FriendRequest friendRequest) {
+        if(isLoggedIn){
         sentFriendRequests.removeIf(request -> request ==friendRequest);
+        }
     }
 
     public void addFriend(User user) {
-        friends.add(user);
+        if(isLoggedIn){
+            friends.add(user);
+        }
     }
 
     public int getNumberOfFriends() {
@@ -101,11 +114,46 @@ public class User {
 
 
     public void rejectFriendRequest(User user) {
-        for(FriendRequest request: receivedFriendRequests){
-            if(request.getSender().equals(user)){
-                this.removeFromReceivedFriendRequest(request);
-                break;
+        if(isLoggedIn){
+            for(FriendRequest request: receivedFriendRequests){
+                if(request.getSender().equals(user)){
+                    removeFromReceivedFriendRequest(request);
+                    break;
+                }
             }
         }
+    }
+
+    public void send(String message, String recipientEmail) {
+        if(isLoggedIn){
+            Chat chat = createChatFor(recipientEmail);
+            chat.add(message, this.emailAddress);
+
+        }
+    }
+
+    private Chat createChatFor(String recipientEmail) {
+        if(chats.containsKey(recipientEmail)){
+            return chats.get(recipientEmail);
+        }
+        Chat chat = new Chat();
+        User recipient = findFriend(recipientEmail);
+        recipient.chats.put(getEmailAddress(), chat);
+        chats.put(recipientEmail, chat);
+        return chat;
+    }
+
+    public Chat getChatsWith(String recipient) {
+        return chats.get(recipient);
+    }
+
+    public User findFriend(String emailAddress) {
+        User found = null;
+        for(User friend: friends){
+            if(friend.getEmailAddress() == emailAddress){
+                found = friend;
+            }
+        }
+        return found;
     }
 }

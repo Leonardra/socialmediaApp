@@ -1,6 +1,7 @@
 package com.thecommunity;
 
 import com.thecommunity.exceptions.EmailExistException;
+import com.thecommunity.exceptions.InvalidPasswordException;
 import com.thecommunity.model.Platform;
 import com.thecommunity.model.User;
 import org.junit.jupiter.api.AfterEach;
@@ -69,7 +70,18 @@ public class PlatformTest {
         User user = new User("Oluwatobi", "Jolayemi", "tobi@gmail.com");
         newPlatform.register(user);
         newPlatform.logOffUser(user);
-        assertTrue(newPlatform.getUser("tobi@gmail.com").getLoginStatus());
+        assertFalse(newPlatform.getUser("tobi@gmail.com").getLoggedIn());
+    }
+
+    @Test
+    void thatUserCannotLoggingWithIncorrectPassword(){
+        User user1 = new User("Tobi", "Bit", "tobi@gmail.com");
+        newPlatform.register(user1);
+        newPlatform.logOffUser(user1);
+        assertFalse(user1.getLoggedIn());
+        //assert
+        assertFalse(user1.getLoggedIn());
+        assertThrows(InvalidPasswordException.class, ()->newPlatform.isLogin("harry", "130121"));
     }
 
     @Test
@@ -96,6 +108,18 @@ public class PlatformTest {
         assertEquals(0, user1.getNumberOfReceivedFriendRequest());
         assertEquals(1, user.getNumberOfFriends());
         assertEquals(1, user1.getNumberOfFriends());
+    }
+
+    @Test
+    void thatUserCanSearchHisFriends(){
+        User user = new User("Oluwatobi", "Jolayemi", "tobi@gmail.com");
+        User user1 = new User("Oluwatosin", "Jolayemi", "tobitobi@gmail.com");
+        newPlatform.register(user);
+        newPlatform.register(user1);
+        user.sendFriendRequestTo(user1);
+        user1.acceptFriendRequestFrom(user);
+        User foundFriend = user.findFriend("tobitobi@gmail.com");
+        assertEquals("tobitobi@gmail.com", foundFriend.getEmailAddress());
     }
 
     @Test
@@ -127,5 +151,11 @@ public class PlatformTest {
         User user1 = new User("Oluwatosin", "Jolayemi", "tobitobi@gmail.com");
         newPlatform.register(user);
         newPlatform.register(user1);
+        user.sendFriendRequestTo(user1);
+        user1.acceptFriendRequestFrom(user);
+        String message = "Good morning";
+        user1.send(message, "tobi@gmail.com");
+        assertNotNull(user1.getChatsWith("tobi@gmail.com"));
+        assertNotNull(user.getChatsWith("tobitobi@gmail.com"));
     }
 }

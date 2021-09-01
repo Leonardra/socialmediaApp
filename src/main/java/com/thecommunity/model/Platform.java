@@ -2,6 +2,7 @@ package com.thecommunity.model;
 
 import com.thecommunity.database.UserDatabase;
 import com.thecommunity.exceptions.EmailExistException;
+import com.thecommunity.exceptions.InvalidPasswordException;
 
 public class Platform {
 
@@ -22,6 +23,7 @@ public class Platform {
     public void register(User user) {
         if(!userDatabase.containsAUser(user.getEmailAddress())){
             userDatabase.add(user);
+            user.setLoggedIn();
         }else{
             throw new EmailExistException("Enter another email. Email already exist");
         }
@@ -38,10 +40,11 @@ public class Platform {
     public boolean isLogin(String email, String password) {
         if(userDatabase.containsAUser(email)){
             User user = userDatabase.findUser(email);
-            user.setLoginStatus();
+            user.setLoggedIn();
             return user.getPassword().equals(password);
+        }else{
+            throw new InvalidPasswordException("Incorrect Password. Enter correct password");
         }
-        return false;
     }
 
     public void clear() {
@@ -49,7 +52,7 @@ public class Platform {
     }
 
     public void logOffUser(User user) {
-        user.setLoginStatus();
+        user.setLoggedIn();
     }
 
     public User getUser(String email) {
